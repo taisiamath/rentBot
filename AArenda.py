@@ -125,15 +125,17 @@ async def show_photos(message: types.Message):
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.31.26.jpg?raw=true",
 
         ]
-
-        # Отправляем все фото подряд без подписей
-        for url in photo_urls:
-            await message.answer_photo(url)
+        
+        # Отправляем по 9 фото за раз с задержкой
+        for i in range(0, len(photo_urls), 9):
+            group = photo_urls[i:i+9]
+            for url in group:
+                await message.answer_photo(url)
+            await asyncio.sleep(1)  # Задержка между группами
 
     except Exception as e:
-        logger.error(f"Ошибка при отправке фото: {e}")
-        await message.answer("⚠️ Не удалось загрузить фотографии")
-
+        logger.error(f"Ошибка: {e}")
+        await message.answer("⚠️ Ошибка загрузки фото")
 
 @dp.message(lambda message: message.text == "📝 Описание квартиры")
 async def show_description(message: types.Message):
