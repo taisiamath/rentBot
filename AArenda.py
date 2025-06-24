@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
@@ -16,15 +17,14 @@ from aiogram.utils.keyboard import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Конфигурация бота
-API_TOKEN = "7382453242:AAF48t3MmGZ0BEIeLRjJIdLqVK6-WwKzxTk"
-MANAGER_CHAT_ID = 1097537387
-OWNER_CHAT_ID = 1097537387  # ID арендодателя
+# Конфигурация бота из переменных окружения
+API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7382453242:AAF48t3MmGZ0BEIeLRjJIdLqVK6-WwKzxTk')
+MANAGER_CHAT_ID = os.getenv('MANAGER_CHAT_ID', '1097537387')
+OWNER_CHAT_ID = os.getenv('OWNER_CHAT_ID', '1097537387')
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
-
 
 # ========== КЛАВИАТУРЫ ==========
 def get_main_keyboard():
@@ -40,7 +40,6 @@ def get_main_keyboard():
     builder.adjust(2, 2, 2)
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=False)
 
-
 # ========== ОБРАБОТЧИК КНОПКИ ЧАТА ==========
 @dp.message(lambda message: message.text == "💬 Чат с арендодателем")
 async def start_owner_chat(message: types.Message):
@@ -48,7 +47,8 @@ async def start_owner_chat(message: types.Message):
         client_builder = InlineKeyboardBuilder()
         client_builder.add(
             types.InlineKeyboardButton(
-                text="💬 Написать арендодателю", url=f"tg://user?id={OWNER_CHAT_ID}"
+                text="💬 Написать арендодателю", 
+                url=f"tg://user?id={OWNER_CHAT_ID}"
             )
         )
         await message.answer(
@@ -56,7 +56,6 @@ async def start_owner_chat(message: types.Message):
             reply_markup=client_builder.as_markup(),
         )
 
-        # Создаем инлайн-кнопку для админа (ссылка на клиента)
         admin_builder = InlineKeyboardBuilder()
         admin_builder.add(
             types.InlineKeyboardButton(
@@ -65,7 +64,6 @@ async def start_owner_chat(message: types.Message):
             )
         )
 
-        # Отправляем уведомление админу
         await bot.send_message(
             chat_id=MANAGER_CHAT_ID,
             text=f"🔔 Пользователь @{message.from_user.username} хочет связаться с арендодателем",
@@ -79,7 +77,6 @@ async def start_owner_chat(message: types.Message):
             reply_markup=get_main_keyboard(),
         )
 
-
 # ========== СОСТОЯНИЯ ==========
 class BookingStates(StatesGroup):
     name = State()
@@ -87,7 +84,6 @@ class BookingStates(StatesGroup):
     adults = State()
     children = State()
     pets = State()
-
 
 # ========== ОБРАБОТЧИКИ КОМАНД ==========
 @dp.message(Command("start"))
@@ -97,12 +93,10 @@ async def cmd_start(message: types.Message):
         reply_markup=get_main_keyboard(),
     )
 
-
 # ========== ОБРАБОТЧИКИ КНОПОК ==========
 @dp.message(lambda message: message.text == "📷 Фото квартиры")
 async def show_photos(message: types.Message):
     try:
-        # Список URL фотографий из GitHub (оптимизированные ссылки)
          photo_urls = [
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.31.14.jpg?raw=true",
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.30.59.jpg?raw=true",
@@ -126,9 +120,14 @@ async def show_photos(message: types.Message):
 
         ]
 
-        # Отправляем все фото подряд без подписей
-        for url in photo_urls:
-            await message.answer_photo(url)
+        # Отправляем первые 10 фото
+        first_batch = [types.InputMediaPhoto(media=url) for url in photo_urls[:10]]
+        await message.answer_media_group(first_batch)
+        
+        # Если фото больше 10, отправляем остальные
+        if len(photo_urls) > 10:
+            second_batch = [types.InputMediaPhoto(media=url) for url in photo_urls[10:]]
+            await message.answer_media_group(second_batch)
 
     except Exception as e:
         logger.error(f"Ошибка при отправке фото: {e}")
@@ -170,13 +169,11 @@ async def show_description(message: types.Message):
 """
     await message.answer(description)
 
-
 @dp.message(lambda message: message.text == "📅 Календарь бронирования")
 async def show_calendar(message: types.Message):
     await message.answer(
         "Календарь доступен по ссылке:\nhttps://sutochno.ru/front/searchapp/detail/1856903?guests_adults=1&occupied=2025-07-18%3B2025-07-19"
     )
-
 
 @dp.message(lambda message: message.text == "🖥 Самостоятельное бронирование")
 async def self_booking(message: types.Message):
@@ -184,13 +181,11 @@ async def self_booking(message: types.Message):
         "Для бронирования перейдите по ссылке:\nhttps://sutochno.ru/front/searchapp/detail/1856903?guests_adults=1&occupied=2025-07-18%3B2025-07-19"
     )
 
-
 # ========== ПРОЦЕСС БРОНИРОВАНИЯ ==========
 @dp.message(lambda message: message.text == "✅ Забронировать")
 async def start_booking(message: types.Message, state: FSMContext):
     await state.set_state(BookingStates.name)
     await message.answer("Введите ваше имя:", reply_markup=types.ReplyKeyboardRemove())
-
 
 @dp.message(BookingStates.name)
 async def process_name(message: types.Message, state: FSMContext):
@@ -198,13 +193,11 @@ async def process_name(message: types.Message, state: FSMContext):
     await state.set_state(BookingStates.dates)
     await message.answer("Укажите даты бронирования (например, 01.07.24-10.07.24):")
 
-
 @dp.message(BookingStates.dates)
 async def process_dates(message: types.Message, state: FSMContext):
     await state.update_data(dates=message.text)
     await state.set_state(BookingStates.adults)
     await message.answer("Количество взрослых:")
-
 
 @dp.message(BookingStates.adults)
 async def process_adults(message: types.Message, state: FSMContext):
@@ -212,13 +205,11 @@ async def process_adults(message: types.Message, state: FSMContext):
     await state.set_state(BookingStates.children)
     await message.answer("Количество детей (если нет, введите 0):")
 
-
 @dp.message(BookingStates.children)
 async def process_children(message: types.Message, state: FSMContext):
     await state.update_data(children=message.text)
     await state.set_state(BookingStates.pets)
     await message.answer("Будут ли с вами животные? (да/нет)")
-
 
 @dp.message(BookingStates.pets)
 async def process_pets(message: types.Message, state: FSMContext):
@@ -235,7 +226,6 @@ async def process_pets(message: types.Message, state: FSMContext):
             f"👤 Контакт: @{message.from_user.username or 'нет username'}"
         )
 
-        # Создаем кнопку для связи с клиентом
         contact_builder = InlineKeyboardBuilder()
         contact_builder.add(
             types.InlineKeyboardButton(
@@ -264,7 +254,6 @@ async def process_pets(message: types.Message, state: FSMContext):
     finally:
         await state.clear()
 
-
 # Обработчик неизвестных сообщений
 @dp.message()
 async def unknown_message(message: types.Message, state: FSMContext):
@@ -273,7 +262,6 @@ async def unknown_message(message: types.Message, state: FSMContext):
         await message.answer(
             "Пожалуйста, используйте кнопки меню", reply_markup=get_main_keyboard()
         )
-
 
 # Запуск бота
 async def main():
@@ -286,7 +274,6 @@ async def main():
     finally:
         await bot.session.close()
         logger.info("🛑 Бот остановлен")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
