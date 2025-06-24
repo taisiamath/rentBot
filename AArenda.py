@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Конфигурация бота
-API_TOKEN = "7757068839:AAHlYJl3cDpG9HOiqRiLJRgjvdMyouYxDt4"
+API_TOKEN = "7382453242:AAF48t3MmGZ0BEIeLRjJIdLqVK6-WwKzxTk"
 MANAGER_CHAT_ID = 1097537387
 OWNER_CHAT_ID = 1097537387  # ID арендодателя
 
