@@ -102,8 +102,8 @@ async def cmd_start(message: types.Message):
 @dp.message(lambda message: message.text == "📷 Фото квартиры")
 async def show_photos(message: types.Message):
     try:
-        # Список URL фотографий из GitHub
-        photo_urls = [
+        # Список URL фотографий из GitHub (оптимизированные ссылки)
+         photo_urls = [
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.31.14.jpg?raw=true",
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.30.59.jpg?raw=true",
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.31.20.jpg?raw=true",
@@ -125,17 +125,19 @@ async def show_photos(message: types.Message):
             "https://github.com/taisiamath/rentBot/blob/main/photo/2025-06-24%2014.31.26.jpg?raw=true",
 
         ]
-        
-        # Отправляем по 9 фото за раз с задержкой
-        for i in range(0, len(photo_urls), 19):
-            group = photo_urls[i:i+19]
-            for url in group:
-                await message.answer_photo(url)
+
+        # Отправляем медиагруппами по 10 фото
+        for i in range(0, len(photo_urls), 10):
+            media_group = [types.InputMediaPhoto(media=url) for url in photo_urls[i:i+10]]
+            await message.answer_media_group(media_group)
             await asyncio.sleep(1)  # Задержка между группами
+
+        # Отправляем уведомление о завершении
+        await message.answer(f"✅ Всего отправлено {len(photo_urls)} фотографий")
 
     except Exception as e:
         logger.error(f"Ошибка: {e}")
-        await message.answer("⚠️ Ошибка загрузки фото")
+        await message.answer("⚠️ Ошибка загрузки фотографий")
 
 @dp.message(lambda message: message.text == "📝 Описание квартиры")
 async def show_description(message: types.Message):
