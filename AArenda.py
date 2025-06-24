@@ -127,8 +127,8 @@ async def show_photos(message: types.Message):
         ]
         
         # Отправляем по 9 фото за раз с задержкой
-        for i in range(0, len(photo_urls), 9):
-            group = photo_urls[i:i+9]
+        for i in range(0, len(photo_urls), 19):
+            group = photo_urls[i:i+19]
             for url in group:
                 await message.answer_photo(url)
             await asyncio.sleep(1)  # Задержка между группами
