@@ -102,41 +102,36 @@ async def cmd_start(message: types.Message):
 @dp.message(lambda message: message.text == "📷 Фото квартиры")
 async def show_photos(message: types.Message):
     try:
-        # Список путей к фотографиям
-        photo_paths = [
-            "photos/photo1.jpg",
-            "photos/photo2.jpg",
-            "photos/photo3.jpg",
-            "photos/photo4.jpg",
-            "photos/photo5.jpg",
-            "photos/photo6.jpg",
-            "photos/photo7.jpg",
-            "photos/photo8.jpg",
-            "photos/photo9.jpg",
-            "photos/photo10.jpg",
+        # Список URL фотографий из GitHub
+        photo_urls = [
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo1.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo2.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo3.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo4.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo5.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo6.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo7.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo8.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo9.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo10.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo11.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo12.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo13.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo14.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo15.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo16.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo17.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo18.png",
+            "https://github.com/taisiamath/rentBot/blob/d0c7c3b02577a596ea899f7a56a66115ea32d913/Photos/photo19.png",
         ]
 
-        # Отправляем первое фото с подписью
-        with open(photo_paths[0], "rb") as photo:
-            await message.answer_photo(
-                photo,
-                caption="🏠 Фото квартиры (1/10)",
-                reply_markup=get_main_keyboard(),
-            )
+        # Отправляем все фото подряд без подписей
+        for url in photo_urls:
+            await message.answer_photo(url)
 
-        # Отправляем остальные фото
-        for path in photo_paths[1:]:
-            with open(path, "rb") as photo:
-                await message.answer_photo(photo)
-
-    except FileNotFoundError as e:
-        logger.error(f"Файл не найден: {e}")
-        await message.answer("⚠️ Фотографии временно недоступны. Попробуйте позже.")
     except Exception as e:
         logger.error(f"Ошибка при отправке фото: {e}")
-        await message.answer(
-            "⚠️ Произошла ошибка при загрузке фотографий. Попробуйте позже."
-        )
+        await message.answer("⚠️ Не удалось загрузить фотографии")
 
 
 @dp.message(lambda message: message.text == "📝 Описание квартиры")
