@@ -126,18 +126,13 @@ async def show_photos(message: types.Message):
 
         ]
 
-        # Отправляем медиагруппами по 10 фото
-        for i in range(0, len(photo_urls), 10):
-            media_group = [types.InputMediaPhoto(media=url) for url in photo_urls[i:i+10]]
-            await message.answer_media_group(media_group)
-            await asyncio.sleep(1)  # Задержка между группами
-
-        # Отправляем уведомление о завершении
-        await message.answer(f"✅ Всего отправлено {len(photo_urls)} фотографий")
+        # Отправляем все фото подряд без подписей
+        for url in photo_urls:
+            await message.answer_photo(url)
 
     except Exception as e:
-        logger.error(f"Ошибка: {e}")
-        await message.answer("⚠️ Ошибка загрузки фотографий")
+        logger.error(f"Ошибка при отправке фото: {e}")
+        await message.answer("⚠️ Не удалось загрузить фотографии")
 
 @dp.message(lambda message: message.text == "📝 Описание квартиры")
 async def show_description(message: types.Message):
