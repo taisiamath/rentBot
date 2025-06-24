@@ -1,3 +1,4 @@
+import os 
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
@@ -278,17 +279,24 @@ async def unknown_message(message: types.Message, state: FSMContext):
 
 
 # Запуск бота
-async def main():
-    try:
-        await bot.delete_webhook(drop_pending_updates=True)
-        logger.info("🔄 Бот запускается...")
-        await dp.start_polling(bot)
-    except Exception as e:
-        logger.error(f"❌ Критическая ошибка: {e}")
-    finally:
-        await bot.session.close()
-        logger.info("🛑 Бот остановлен")
-
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    from aiohttp import web
+    
+    async def health_check():
+        app = web.Application()
+        app.router.add_get("/", lambda r: web.Response(text="Bot is running"))
+        return app
+
+    async def start_bot_and_server():
+        await bot.delete_webhook(drop_pending_updates=True)
+        asyncio.create_task(dp.start_polling(bot))
+        
+        app = await health_check()
+        runner = web.AppRunner(app)
+        await runner.setup()
+        port = int(os.getenv("PORT", 5000))
+        site = web.TCPSite(runner, "0.0.0.0", port)
+        await site.start()
+        print(f"Server started on port {port}")
+
+    asyncio.run(start_bot_and_server())
